@@ -4,4 +4,7 @@ python -m venv .venv
 
 pip install -r requirements.txt
 
+right bottom: pick the .venv and then run interactive python
+
+!pip show package
 or uv
