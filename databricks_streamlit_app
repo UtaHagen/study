@@ -1,0 +1,436 @@
+## Authorization
+  https://docs.databricks.com/aws/en/dev-tools/databricks-apps/auth
+App authorization: unique identity to evaluate the app's permissions independently of any user. ensures that the app can only access resources explicitly granted to it, even outside the context of user interaction.
+  
+import streamlit as st
+from databricks import sql
+import yaml
+import logging
+import time
+
+
+# Function to load configuration from YAML
+def load_config():
+    try:
+        with open("app.yaml", "r") as file:
+            yaml_config = yaml.safe_load(file)
+
+        # Extract environment variables
+        config = {}
+        for env_var in yaml_config.get("env", []):
+            name = env_var.get("name")
+            value = env_var.get("valueFrom") or env_var.get("value")
+            if name and value:
+                config[name] = value
+
+        return config
+    except Exception as e:
+        st.error(f"Failed to load configuration: {e}")
+        return None
+
+
+# Function to establish connection with Databricks
+def connect_to_databricks(config):
+    try:
+        connection = sql.connect(
+            server_hostname=config["DATABRICKS_HOST"],
+            http_path=config["HTTP_PATH"],
+            access_token=config["DATABRICKS_TOKEN"],
+        )
+        return connection
+    except Exception as e:
+        st.error(f"Failed to connect to Databricks: {e}")
+        return None
+
+
+def search_consumer(connection, search_type, search_value):
+    try:
+        with connection.cursor() as cursor:
+            if search_type == "email":
+                query = """
+                SELECT 
+                    concat(BI_FNAME, ' ', BI_LNAME) as name,
+                    BI_INTERNET_ADDR as email,
+                    CONCAT(BI_HOME_AREA_CD, BI_HOME_PHN) as primary_phone,
+                    CASE WHEN BI_ADDR2 IS NOT NULL 
+                    THEN CONCAT(BI_ADDR1, ' ', BI_ADDR2) ELSE BI_ADDR1 END AS address,
+                    BI_CITY as city,
+                    BI_ST as state,
+                    BI_ZIP as zip_code
+                FROM main.gold.dim_consumer_v
+                WHERE BI_INTERNET_ADDR = ?
+                """
+            else:  # phone search
+                query = """
+                SELECT 
+                    concat(BI_FNAME, ' ', BI_LNAME) as name,
+                    BI_INTERNET_ADDR as email,
+                    CONCAT(BI_HOME_AREA_CD, BI_HOME_PHN) as primary_phone,
+                    CASE WHEN BI_ADDR2 IS NOT NULL 
+                    THEN CONCAT(BI_ADDR1, ' ', BI_ADDR2) ELSE BI_ADDR1 END AS address,
+                    BI_CITY as city,
+                    BI_ST as state,
+                    BI_ZIP as zip_code
+                FROM main.gold.consumer
+                WHERE CONCAT(BI_HOME_AREA_CD, BI_HOME_PHN) = ?
+                """
+
+            cursor.execute(query, (search_value,))
+            results = cursor.fetchall()
+            return results
+    except Exception as e:
+        st.error(f"Failed to search consumer: {e}")
+        return []
+
+
+def create_table_if_not_exists(connection):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS main.bronze.order_orders (
+                id BIGINT GENERATED ALWAYS AS IDENTITY,
+                name STRING,
+                email STRING,
+                primary_phone STRING,
+                contact_via_phone STRING,
+                address STRING,
+                city STRING,
+                state STRING,
+                zip_code STRING,
+                speed_requested STRING,
+                add_router INT,
+                add_ucontrol_app INT,
+                prospect_verified INT,
+                install_schedule TIMESTAMP,
+                created_by STRING,
+                created_date_time TIMESTAMP,
+                msr_name STRING,
+                comments STRING
+            )
+            """)
+        return True
+    except Exception as e:
+        st.error(f"Failed to create table: {e}")
+        return False
+
+
+# Function to save survey response to Databricks
+def save_survey_response(
+    connection,
+    name,
+    email,
+    primary_phone,
+    contact_via_phone,
+    address,
+    city,
+    state,
+    zip_code,
+    speed_requested,
+    add_router,
+    add_ucontrol_app,
+    prospect_verified,
+    install_schedule,
+    created_by,
+    msr_name,
+    comments,
+):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+            INSERT INTO main.bronze.orders (
+                name, email, primary_phone, contact_via_phone, address, city, state, zip_code, speed_requested,
+                add_router, add_ucontrol_app, prospect_verified, install_schedule, created_by, created_date_time, msr_name, comments
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?)
+            """,
+                (
+                    name,
+                    email,
+                    primary_phone,
+                    contact_via_phone,
+                    address,
+                    city,
+                    state,
+                    zip_code,
+                    speed_requested,
+                    add_router,
+                    add_ucontrol_app,
+                    prospect_verified,
+                    install_schedule,
+                    created_by,
+                    msr_name,
+                    comments,
+                ),
+            )
+        return True
+    except Exception as e:
+        st.error(f"Failed to save order: {e}")
+        return False
+
+
+def update_form_with_selected_record(row):
+    st.session_state.name = row["Name"]
+    st.session_state.email = row["Email"]
+    st.session_state.primary_phone = row["Phone"]
+    st.session_state.address = row["Address"]
+    st.session_state.city = row["City"]
+    st.session_state.state = row["State"]
+    st.session_state.zip_code = row["Zip Code"]
+
+
+# Main app
+def main():
+    st.title("Order Form")
+
+    # Load configuration
+    config = load_config()
+    if not config:
+        st.error("Failed to load configuration. Please ensure app.yaml file exists.")
+        return
+
+    # Initialize connection to Databricks
+    connection = connect_to_databricks(config)
+    if connection:
+        # Create table if it doesn't exist
+        if create_table_if_not_exists(connection):
+            logging.info("Connected to Databricks successfully!")
+
+        # Get current user from Databricks using SQL
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT current_user()")
+                user_email = cursor.fetchone()[0]
+                logging.info(f"Current user: {user_email}")
+        except Exception as e:
+            st.error(f"Failed to get current user: {e}")
+            user_email = ""
+
+        # Initialize session state for form values if not exists
+        order_fields = [
+            ("name", ""),
+            ("email", ""),
+            ("primary_phone", ""),
+            ("contact_via_phone", "No"),
+            ("address", ""),
+            ("city", ""),
+            ("state", ""),
+            ("zip_code", ""),
+            ("speed_requested", ""),
+            ("add_router", 0),
+            ("add_ucontrol_app", 0),
+            ("prospect_verified", 0),
+            ("install_schedule", None),
+            ("msr_name", ""),
+            ("comments", ""),
+        ]
+        for field, default in order_fields:
+            if field not in st.session_state:
+                st.session_state[field] = default
+
+        # Add search functionality
+        st.subheader("Search Existing Customer")
+        search_type = st.radio("Search by:", ["Email", "Phone"])
+        search_value = st.text_input(f"Enter {search_type.lower()}:")
+        search_button = st.button("Search")
+
+        if search_button and search_value:
+            results = search_consumer(connection, search_type.lower(), search_value)
+            if results:
+                st.write("Search Results:")
+                # Convert results to DataFrame for better display
+                import pandas as pd
+
+                df = pd.DataFrame(results)
+                # Rename columns for better display
+                df.columns = [
+                    "Name",
+                    "Email",
+                    "Phone",
+                    "Address",
+                    "City",
+                    "State",
+                    "Zip Code",
+                ]
+                # Display the results table with column names
+                st.dataframe(df, use_container_width=True)
+
+                # Add select buttons for each record
+                cols = st.columns(len(df))
+                for idx, row in df.iterrows():
+                    with cols[idx]:
+                        st.button(
+                            f"Select Record {idx}",
+                            key=f"select_{idx}",
+                            on_click=update_form_with_selected_record,
+                            args=(row,),
+                        )
+            else:
+                st.warning("No matching records found.")
+
+        with st.form("order_order_form", clear_on_submit=True):
+            # Initialize form fields with session state values
+            name = st.text_input(
+                "Name (Required)",
+                value=st.session_state.get("name", ""),
+            )
+            email = st.text_input(
+                "Email Address (Required)",
+                value=st.session_state.email if "email" in st.session_state else "",
+            )
+            primary_phone = st.text_input(
+                "Primary Phone (Required)",
+                value=st.session_state.primary_phone
+                if "primary_phone" in st.session_state
+                else "",
+            )
+            contact_via_phone = st.selectbox(
+                "Contact Via Phone",
+                ["Yes", "No"],
+                index=["No", "Yes"].index(
+                    st.session_state.contact_via_phone
+                    if "contact_via_phone" in st.session_state
+                    else "No"
+                ),
+            )
+            address = st.text_input(
+                "Address (Required)",
+                value=st.session_state.address if "address" in st.session_state else "",
+            )
+            city = st.text_input(
+                "City (Required)",
+                value=st.session_state.city if "city" in st.session_state else "",
+            )
+            state = st.text_input(
+                "State (Required)",
+                value=st.session_state.state if "state" in st.session_state else "",
+            )
+            zip_code = st.text_input(
+                "Zip Code (Required)",
+                value=st.session_state.zip_code
+                if "zip_code" in st.session_state
+                else "",
+            )
+            speed_requested = st.text_input(
+                "Speed Requested (Required)",
+                value=st.session_state.speed_requested
+                if "speed_requested" in st.session_state
+                else "",
+            )
+            add_router = st.selectbox(
+                "Add Router",
+                ["No", "Yes"],
+                index=["No", "Yes"].index(
+                    "Yes" if st.session_state.add_router == 1 else "No"
+                ),
+            )
+            add_ucontrol_app = st.selectbox(
+                "Add UControl App",
+                ["No", "Yes"],
+                index=["No", "Yes"].index(
+                    "Yes" if st.session_state.add_ucontrol_app == 1 else "No"
+                ),
+            )
+            prospect_verified = st.selectbox(
+                "Prospect Verified",
+                ["No", "Yes"],
+                index=["No", "Yes"].index(
+                    "Yes" if st.session_state.prospect_verified == 1 else "No"
+                ),
+            )
+            install_schedule = (
+                st.date_input(
+                    "Install Schedule Date",
+                    value=st.session_state.install_schedule
+                    if "install_schedule" in st.session_state
+                    else None,
+                )
+                if st.session_state.install_schedule
+                else st.date_input("Install Schedule Date", value=None)
+            )
+            msr_name = st.text_input(
+                "MSR Name (Required)",
+                value=st.session_state.msr_name
+                if "msr_name" in st.session_state
+                else "",
+            )
+            comments = st.text_area(
+                "Comments",
+                value=st.session_state.comments
+                if "comments" in st.session_state
+                else "",
+            )
+
+            submitted = st.form_submit_button("Submit")
+
+            if submitted:
+                required_fields = [
+                    name,
+                    email,
+                    primary_phone,
+                    address,
+                    city,
+                    state,
+                    zip_code,
+                    speed_requested,
+                    msr_name,
+                ]
+                if any(not f for f in required_fields):
+                    st.warning("Please fill in all required fields.")
+                    # Save current values to session state
+                    st.session_state.name = name
+                    st.session_state.email = email
+                    st.session_state.primary_phone = primary_phone
+                    st.session_state.contact_via_phone = contact_via_phone
+                    st.session_state.address = address
+                    st.session_state.city = city
+                    st.session_state.state = state
+                    st.session_state.zip_code = zip_code
+                    st.session_state.speed_requested = speed_requested
+                    st.session_state.add_router = 1 if add_router == "Yes" else 0
+                    st.session_state.add_ucontrol_app = (
+                        1 if add_ucontrol_app == "Yes" else 0
+                    )
+                    st.session_state.prospect_verified = (
+                        1 if prospect_verified == "Yes" else 0
+                    )
+                    st.session_state.install_schedule = install_schedule
+                    st.session_state.msr_name = msr_name
+                    st.session_state.comments = comments
+                else:
+                    # Capitalize address, city, and state
+                    address_cap = address.upper()
+                    city_cap = city.upper()
+                    state_cap = state.upper()
+                    install_schedule_val = (
+                        install_schedule if install_schedule else None
+                    )
+                    if save_survey_response(
+                        connection,
+                        name,
+                        email,
+                        primary_phone,
+                        contact_via_phone,
+                        address_cap,
+                        city_cap,
+                        state_cap,
+                        zip_code,
+                        speed_requested,
+                        1 if add_router == "Yes" else 0,
+                        1 if add_ucontrol_app == "Yes" else 0,
+                        1 if prospect_verified == "Yes" else 0,
+                        install_schedule_val,
+                        user_email,
+                        msr_name,
+                        comments,
+                    ):
+                        st.toast("Order submitted successfully!", icon="✅")
+                        st.success("Order submitted successfully!")
+                        st.session_state.clear()
+                        time.sleep(1)
+                        st.rerun()
+    else:
+        st.error("Failed to connect to Databricks. Please check your configuration.")
+
+
+if __name__ == "__main__":
+    main()

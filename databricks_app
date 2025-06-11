@@ -1,4 +1,0 @@
-## Authorization
-  https://docs.databricks.com/aws/en/dev-tools/databricks-apps/auth
-App authorization: unique identity to evaluate the app's permissions independently of any user. ensures that the app can only access resources explicitly granted to it, even outside the context of user interaction.
-  
