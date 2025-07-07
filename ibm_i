@@ -1,4 +1,7 @@
-This is dealing with version 7.3 AS400 Access Client Slutions
+### This is dealing with version 7.3 AS400 Access Client Slutions
+
+Documentation: https://ibmi-oss-docs.readthedocs.io/en/latest/yum/README.html
+
 1. Check Access: 
 -- cl
 DSPUSRPRF USRPRF(YOUR_USERNAME)
