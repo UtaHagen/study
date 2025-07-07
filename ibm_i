@@ -1,0 +1,13 @@
+1. Check Access: 
+-- cl
+DSPUSRPRF USRPRF(YOUR_USERNAME)
+
+2. install yum /python etc for Open Source Package Managment
+--cl
+CALL QP2TERM 
+-- /QOpenSys/user/bin/-sh
+sh /tmp/bootstrap.sh
+export PATH=/QOpenSys/pkgs/bin:$PATH
+-- verify
+yum --version
+3.
