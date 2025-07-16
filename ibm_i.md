@@ -26,3 +26,13 @@ CHGTCPDMN
 STRTCPSVR *DNS
 PING RMTSYS('public.dhe.ibm.com')
 
+4. Create cl program
+--cl create a library
+   CRTLIB LIB(MYLIB) 
+--cl create a source fule
+   CRTSRCPF FILE(MYLIB/QCLSRC) RCDLEN(112) TEXT('CL source file')
+--cl edit the member in SEU interface
+   WRKMBRPDM FILE(DBRXData/QCLSRC) 
+
+
+6. CRTCLPGM PGM(MYLIB/CPYEXPORT)
