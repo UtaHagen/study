@@ -51,3 +51,7 @@ back to SEU type 14 for Opt.
 For any trouble shooting the error use WRKMSG
 
 8. Test it use: CALL PGM(Library/program_name)
+
+9. Special case DDM
+    <img width="1426" height="740" alt="image" src="https://github.com/user-attachments/assets/af59f8fc-c70b-4520-87c6-253372dc10fc" />
+
