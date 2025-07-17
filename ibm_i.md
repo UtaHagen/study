@@ -53,6 +53,9 @@ For any trouble shooting the error use WRKMSG
 8. Test it use: CALL PGM(Library/program_name)
 
 9. Special case DDM
+    -- cl STRSEU SRCFILE(DBRXDATA/QDDSSRC) SRCMBR(MSTAF1_UK) TYPE(PF)
+
     <img width="776" height="498" alt="image" src="https://github.com/user-attachments/assets/785aea8b-1d4d-42c8-b227-02e85a461181" />
 
+--cl CRTPF FILE(DBRXDATA/MSTAF1_UK) SRCFILE(DBRXDATA/QDDSSRC)
 
