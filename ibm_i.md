@@ -34,7 +34,7 @@ PING RMTSYS('public.dhe.ibm.com')
 --cl edit the member in SEU interface
    WRKMBRPDM FILE(DBRXData/QCLSRC)
 
-5. WOrk with Members
+5. Work with Members
 Press F6 to create a new ember
 source member: name
 source type: clp
@@ -45,17 +45,22 @@ PGM
             STRDLM(*DBLQUOTE) ADDCOLNAM(*SQL)
 ENDPGM
 to add a new line, type I in the 0001.00/0002.00/0003.00 press enter
-6. Compile a member as a program
+
+7. Compile a member as a program
 Super annoying: Turn off batch job by Press F18 and change Y to N
 back to SEU type 14 for Opt.
 For any trouble shooting the error use WRKMSG
 
 8. Test it use: CALL PGM(Library/program_name)
+WRKMBRPDM -- go to SEU
+WRKSBMJOB 
 
-9. Special case DDM
+10. Special case DDM
     -- cl STRSEU SRCFILE(DBRXDATA/QDDSSRC) SRCMBR(MSTAF1_UK) TYPE(PF)
 
     <img width="776" height="498" alt="image" src="https://github.com/user-attachments/assets/785aea8b-1d4d-42c8-b227-02e85a461181" />
 
 --cl CRTPF FILE(DBRXDATA/MSTAF1_UK) SRCFILE(DBRXDATA/QDDSSRC)
+
+--cl CPYF FROMFILE(MPUBFILE/MSTAF1_UK) TOFILE(DBRXDATA/MSTAF1_UK) MBROPT(*REPLACE) FMTOPT(*NOCHK)                                       
 
