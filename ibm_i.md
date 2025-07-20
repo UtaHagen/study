@@ -39,11 +39,11 @@ Press F6 to create a new ember
 source member: name
 source type: clp
 sample code:
-PGM
-  CPYTOIMPF FROMFILE(database/file) TOSTMF('/new_folder/file.csv') +
-            MBROPT(*REPLACE) RCDDLM(*CRLF) DTAFMT(*DLM) +
-            STRDLM(*DBLQUOTE) ADDCOLNAM(*SQL)
-ENDPGM
+PGM                                                                   
+  CPYTOIMPF FROMFILE(MPUBFILE/MITNFL) TOSTMF('/XIALIN/MITNFL.CSV') +  
+            MBROPT(*REPLACE) RCDDLM(*CRLF) DTAFMT(*DLM) +             
+            STRDLM(*DBLQUOTE) ADDCOLNAM(*SQL)                         
+ENDPGM                                                                
 to add a new line, type I in the 0001.00/0002.00/0003.00 press enter
 
 7. Compile a member as a program
@@ -62,5 +62,9 @@ WRKSBMJOB
 
 --cl CRTPF FILE(DBRXDATA/MSTAF1_UK) SRCFILE(DBRXDATA/QDDSSRC)
 
---cl CPYF FROMFILE(MPUBFILE/MSTAF1_UK) TOFILE(DBRXDATA/MSTAF1_UK) MBROPT(*REPLACE) FMTOPT(*NOCHK)                                       
+--cl CPYF FROMFILE(MPUBFILE/MSTAF1_UK) TOFILE(DBRXDATA/MSTAF1_UK) MBROPT(*REPLACE) FMTOPT(*NOCHK)     
+
+CPYTOIMPF FROMFILE(DBRXDATA/MSTAF1_UK) TOSTMF('/XIALIN/MSTAF1_UK.CSV') +                             
+            MBROPT(*REPLACE) RCDDLM(*CRLF) DTAFMT(*DLM) +     
+            STRDLM(*DBLQUOTE) ADDCOLNAM(*SQL) STMFCCSID(1208) 
 
