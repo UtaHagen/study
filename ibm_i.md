@@ -32,7 +32,7 @@ PING RMTSYS('public.dhe.ibm.com')
 --cl create a source fule
    CRTSRCPF FILE(MYLIB/QCLSRC) RCDLEN(112) TEXT('CL source file')
 --cl edit the member in SEU interface
-   WRKMBRPDM FILE(DBRXData/QCLSRC)
+######   WRKMBRPDM FILE(DBRXData/QCLSRC)
 
 5. Work with Members
 Press F6 to create a new ember
@@ -42,14 +42,14 @@ sample code:
 PGM                                                                   
   CPYTOIMPF FROMFILE(MPUBFILE/MITNFL) TOSTMF('/XIALIN/MITNFL.CSV') +  
             MBROPT(*REPLACE) RCDDLM(*CRLF) DTAFMT(*DLM) +             
-            STRDLM(*DBLQUOTE) ADDCOLNAM(*SQL)                         
+            STRDLM(*DBLQUOTE) ADDCOLNAM(*SQL) STMFCCSID(1208)                  
 ENDPGM                                                                
 to add a new line, type I in the 0001.00/0002.00/0003.00 press enter
 
 7. Compile a member as a program
 Super annoying: Turn off batch job by Press F18 and change Y to N
 back to SEU type 14 for Opt.
-For any trouble shooting the error use WRKMSG
+#### For any trouble shooting the error use WRKMSG
 
 8. Test it use: CALL PGM(Library/program_name)
 WRKMBRPDM -- go to SEU
@@ -79,3 +79,17 @@ Edit the newly created physical file:
 
 DSPPFM DBRXDATA/MSTAF1_UK for checking the created physical file
 
+
+11. Schedule the Job
+    
+-- cl
+WRKJOBSCDE
+Press F6 Add
+<img width="1396" height="582" alt="image" src="https://github.com/user-attachments/assets/d139f0a1-9e84-482d-9a8e-982da1b05c0c" />
+
+12. work with large file:
+STRSEU SRCFILE(dbrxdata/QCLSRC) SRCMBR(MYRSQL) TYPE(SQL)
+
+RUNSQLSTM SRCFILE(dbrxdata/QCLSRC) SRCMBR(MYRSQL)
+
+STRSQL
