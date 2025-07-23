@@ -65,7 +65,7 @@ WHERE TABLE_NAME = 'MSTAF1_UK';
 
 -- cl STRSEU SRCFILE(DBRXDATA/QDDSSRC) SRCMBR(MSTAF1_UK) TYPE(PF)
 
-    <img width="776" height="498" alt="image" src="https://github.com/user-attachments/assets/785aea8b-1d4d-42c8-b227-02e85a461181" />
+<img width="776" height="498" alt="image" src="https://github.com/user-attachments/assets/785aea8b-1d4d-42c8-b227-02e85a461181" />
 
 --cl CRTPF FILE(DBRXDATA/MSTAF1_UK) SRCFILE(DBRXDATA/QDDSSRC)
 
