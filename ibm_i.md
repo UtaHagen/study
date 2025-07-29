@@ -79,7 +79,8 @@ Edit the newly created physical file:
 
 DSPPFM DBRXDATA/MSTAF1_UK for checking the created physical file
 
-
+View the physical phile:
+-- cl DSPPFM DBRXDATA/MSTAF1_UK
 11. Schedule the Job
     
 -- cl
