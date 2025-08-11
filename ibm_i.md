@@ -52,7 +52,7 @@ back to SEU type 14 for Opt.
 #### For any trouble shooting the error use WRKMSG
 
 8. Test it use: CALL PGM(Library/program_name)
-WRKMBRPDM -- go to SEU
+### WRKMBRPDM -- go to SEU
 WRKSBMJOB 
 
 10. Special case DDM
