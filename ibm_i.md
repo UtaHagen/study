@@ -41,11 +41,11 @@ source type: clp
 sample code:
 PGM                                                                   
   CPYTOIMPF FROMFILE(MPUBFILE/MITNFL) TOSTMF('/XIALIN/MITNFL.CSV') +  
-            MBROPT(*REPLACE) RCDDLM(*CRLF) DTAFMT(*DLM) +             
+            MBROPT(*REPLACE) RCDDLM(*CRLF) DTAFMT(*DLM) FLDDLM('|') +             
             STRDLM(*DBLQUOTE) ADDCOLNAM(*SQL) STMFCCSID(1208)                  
 ENDPGM                                                                
 to add a new line, type I in the 0001.00/0002.00/0003.00 press enter
-
+###### Best practice for csv, USE |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 7. Compile a member as a program
 Super annoying: Turn off batch job by Press F18 and change Y to N
 back to SEU type 14 for Opt.
