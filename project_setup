@@ -1,4 +1,7 @@
 python -m venv .venv
+uv venv --python 3.12
+
+uv init
 
 .venv\Scripts\Activate.ps1
 source .venv\Scripts\Activate
