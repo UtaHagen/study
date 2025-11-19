@@ -53,7 +53,9 @@ back to SEU type 14 for Opt.
 
 8. Test it use: CALL PGM(Library/program_name)
 ### WRKMBRPDM -- go to SEU
-WRKSBMJOB 
+
+WRKJOBSCDE -- see all the scheduled jobs
+WRKSBMJOB -- create a job
 
 10. Special case DDM
 
