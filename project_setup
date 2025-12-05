@@ -13,6 +13,8 @@ right bottom: pick the .venv and then run interactive python
 !pip show package
 or uv
 
+check python version:
+uv run python --version
 
 test azure functions:
 Invoke-RestMethod -Uri "http://localhost:7071/api/YourFunctionName" -Method Post -Headers @{ "Content-Type" = "application/json" } -Body '{ "industry": "Tech", "sectors": "AI", "pe_firms": "Sequoia" }'
