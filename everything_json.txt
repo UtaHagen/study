@@ -1,0 +1,8 @@
+## Everything about JSON
+1) get a json string, need to format it as readable format
+- use jq: for strictly JSON format. means every new line have to be /n not start a new line
+- use python: more forgiving. example code for sse style json
+pbpaste \   ---- pbpaste dumps your macOS clipboard into the terminal.
+  | sed 's/^data: //' \    --- This removes the literal prefix:
+  | python3 -c 'import json,sys; print(json.loads(sys.stdin.read())["full_response"])'
+
