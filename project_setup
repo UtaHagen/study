@@ -1,6 +1,6 @@
 python -m venv .venv
 uv venv --python 3.12
-
+uv venv .venv --python /usr/local/bin/python3
 uv init
 
 .venv\Scripts\Activate.ps1
